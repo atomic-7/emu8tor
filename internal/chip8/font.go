@@ -17,7 +17,7 @@ var Font [80]byte = [80]byte{
 0xE0, 0x90, 0x90, 0x90, 0xE0, // D
 0xF0, 0x80, 0xF0, 0x80, 0xF0, // E
 0xF0, 0x80, 0xF0, 0x80, 0x80}  // F
-func LoadFont(mem *[4096]byte) {
+func LoadFont(mem []byte) {
 	// 050 - 09f seems to be the standard location, but this is implementation dependent
 	for  idx := 0; idx < 80; idx++ {
 		mem[0x050 + idx] = Font[idx]

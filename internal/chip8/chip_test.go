@@ -5,11 +5,11 @@ import(
 )
 
 func TestReadInstruction(t *testing.T) {
-	var memory [4096]byte
-	LoadFont(&memory)
+	ch := NewChip8()
 
 	// OP:f|0|9|0|&>144
-	ins, err := ReadInstruction(&memory, 0x050)
+	ch.PC = 0x050
+	ins, err := ch.ReadInstruction()
 
 	if err != nil {
 		t.Fatalf("Error: %s", err.Error())

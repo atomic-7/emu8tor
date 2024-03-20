@@ -1,6 +1,5 @@
 package chip8
 import(
-	"errors"
 	"fmt"
 )
 /*	X:n2: look up registers v0 through vf
@@ -12,16 +11,6 @@ import(
 type Instruction struct {
 	Lower byte	// opcode, n2
 	Higher byte	// n3, n4
-}
-	
-func ReadInstruction(mem *[4096]byte, pc int16) (Instruction, error) {
-	var instruction Instruction
-	if pc >= 4096 {
-		return instruction, errors.New("pc out of bounds")
-	}
-	instruction.Lower = mem[pc]
-	instruction.Higher = mem[pc+1]
-	return instruction, nil
 }
 
 func (ins *Instruction) OpCode() byte {
