@@ -16,3 +16,4 @@ make
 
 ## Links
 https://chip-8.github.io/links/
+https://github.com/Timendus/chip8-test-suite

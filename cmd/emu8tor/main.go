@@ -6,9 +6,10 @@ import (
 )
 
 func main() {
+	romBase := "../../chip8-test-suite/bin/"
 	fmt.Println("Emulating...")
 	engine := chip8.NewEngine()
-	engine.LoadGame()
+	engine.LoadGame(romBase + "1-chip8-logo.ch8")
 	engine.Start()
 }
 

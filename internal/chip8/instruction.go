@@ -37,6 +37,6 @@ func (ins *Instruction) MemAddr() int16 {
 }
 
 func (ins *Instruction) String() string {
-	return fmt.Sprintf("OP:%x|%x|%x|%x|&>%d", ins.OpCode(), ins.N2(), ins.N3(),ins.N4(), ins.MemAddr())
+	return fmt.Sprintf("OP:%x|N1:%x|N2:%x|N3:%x|&>%x", ins.OpCode(), ins.N2(), ins.N3(),ins.N4(), ins.MemAddr())
 }
 
