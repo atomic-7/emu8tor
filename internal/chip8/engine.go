@@ -2,7 +2,6 @@ package chip8
 
 import (
 	"fmt"
-	"io"
 	"log"
 	"os"
 )
@@ -21,31 +20,17 @@ func  NewEngine() *Engine {
 
 func (e *Engine) LoadGame(path string) {
 	// open fh, read bytes to  chip memory
-	file, err := os.Open(path)
-	defer file.Close()
+
+	data, err := os.ReadFile(path)
 	if err != nil {
 		log.Fatal(err.Error())
 	}
-	
-	totalBytes := 0
-	const maxChunkSize = 8
 	const memOffset = 0x200
-	tmpB := make([]byte, maxChunkSize)
-	for {
-		numBytes, err := file.Read(tmpB)
-		if err != nil {
-			if err != io.EOF {
-				log.Fatal(err.Error())
-			}
-			break	// eof reached
-		}
-		for idx := 0; idx < numBytes; idx ++ {
-			e.Chip.Memory[memOffset + totalBytes + idx] = tmpB[idx]
-		}
-		totalBytes += numBytes
+	for idx, b := range data {
+		e.Chip.Memory[memOffset + idx] = b
 	}
-	
-	fmt.Printf("Read %d bytes from %s\n", totalBytes, path)
+
+	fmt.Printf("Read %d bytes from %s\n", len(data), path)
 }
 
 func (e *Engine) Start() {	
