@@ -17,16 +17,16 @@ func (ins *Instruction) OpCode() byte {
 	return ins.Lower >> 4
 }
 
-func (ins *Instruction) N2() byte {
-	return ins.Lower << 4
+func (ins *Instruction) N2() int8 {
+	return int8(ins.Lower & 0x0f)
 }
 
-func (ins *Instruction) N3() byte {
-	return ins.Higher >> 4
+func (ins *Instruction) N3() int8 {
+	return int8(ins.Higher >> 4)
 }
 
-func (ins *Instruction) N4() byte {
-	return ins.Higher << 4
+func (ins *Instruction) N4() int8 {
+	return int8(ins.Higher & 0x0f)
 }
 
 func (ins *Instruction) MemAddr() int16 {

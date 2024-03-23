@@ -7,20 +7,24 @@ import (
 // Chip8 should represent the memory as seen by an original chip8 game
 type Chip8 struct {
 	Memory    []byte
-	Registers []byte
+	Registers []int8
 	Display   []byte
 	PC        int16
 	I         int16
+	Width     int16
+	Height    int16
 }
 
 // both pc and index counter I can only adress 12 bits = 4096 addresses
 
 func NewChip8() *Chip8 {
 	var chip Chip8
+	chip.Width = 64
+	chip.Height = 32
 	chip.Memory = make([]byte, 4096, 4096)
 	LoadFont(chip.Memory)
-	chip.Registers = make([]byte, 16, 16)
-	chip.Display = make([]byte, 64*32, 64*32)
+	chip.Registers = make([]int8, 16, 16)
+	chip.Display = make([]byte, chip.Width * chip.Height, chip.Width * chip.Height)
 	chip.PC = 0
 	chip.I = 0x020
 	return &chip
