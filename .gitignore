@@ -1,5 +1,7 @@
 # main binary
 /emu8tor
+
+bin/
 # Binaries and build artifacts for various platforms
 *.exe
 *.exe~

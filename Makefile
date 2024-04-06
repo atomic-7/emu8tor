@@ -1,16 +1,23 @@
 BINARY_NAME=emu8tor
+OUTDIR=bin
 
-all: build
+all: output build
 
-build:
-	go build ./cmd/${BINARY_NAME} 
+output:
+	mkdir -p ./bin
+
+build: output
+	go build -o bin/ ./cmd/${BINARY_NAME} 
 
 run: build
-	./${BINARY_NAME}
+	./${OUTDIR}/${BINARY_NAME}
 
 clean:
 	go clean
-	rm ./${BINARY_NAME}
+	rm -r ./bin
 
 test:
 	go test ./internal/chip8/
+
+rayrender: output
+	go build -o bin/ ./cmd/rayrender
