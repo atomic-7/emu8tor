@@ -9,6 +9,7 @@ import (
 type RayRender struct {
 	Width int
 	Height int
+	rayChan chan []byte
 }
 
 func (rr *RayRender) SetWidth(w int) {
@@ -20,14 +21,12 @@ func (rr *RayRender) SetHeight(h int) {
 }
 
 func (rr *RayRender) Draw(dbuf []byte) {
-	/*
-		GetScreenWidth()
-		void EnableEventWaiting(void)
-		float GetFrameTime(void)
-		SetShapesTexture(Texture2d texture, Rectangle source)
-	*/
+	rr.rayChan <- dbuf
+}
+func (rr *RayRender) DrawBuf(dbuf []byte) {
+	color := rl.NewColor(dbuf[0],dbuf[1],dbuf[2], 255)
 	rl.BeginDrawing()
-	rl.ClearBackground(rl.RayWhite)
+	rl.ClearBackground(color)
 	rl.DrawText("Raylib Woohoo!", 190, 200, 20, rl.LightGray)
 	rl.EndDrawing()
 
@@ -41,3 +40,9 @@ func NewRaylibRender(w int, h int) *RayRender {
 
 	return &rr
 }
+/*
+	GetScreenWidth()
+	void EnableEventWaiting(void)
+	float GetFrameTime(void)
+	SetShapesTexture(Texture2d texture, Rectangle source)
+*/
