@@ -70,7 +70,7 @@ func NewRaylibRender(w int, h int, bufChan chan []byte) *RayRender {
 
 // Executing the renderloop in a seperate goroutine has led to crashes
 // presumably because of conflicts with the garbage collector not restoring the stack as expected
-func RenderLoop(dWidth int, dHeight int, wWidth int, wHeight int, render *RayRender) {
+func RenderLoop(dWidth int, dHeight int, wWidth int, wHeight int, render *RayRender, step chan bool) {
 	// abort context here
 	lastBuf := make([]byte, dWidth*dHeight)
 	rl.InitWindow(int32(wWidth), int32(wHeight), "Emu8tor - Raylib Render")
@@ -83,6 +83,11 @@ func RenderLoop(dWidth int, dHeight int, wWidth int, wHeight int, render *RayRen
 			render.DrawBuf(lastBuf)
 		default:
 			render.DrawBuf(lastBuf)
+		}
+		if rl.IsKeyPressed(rl.KeyS) {
+			if step != nil {
+				step <- true
+			}
 		}
 	}
 	fmt.Println("raylib: should close")

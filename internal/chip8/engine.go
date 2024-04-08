@@ -35,10 +35,14 @@ func (e *Engine[_]) LoadGame(path string) {
 	fmt.Printf("Read %d bytes from %s\n", len(data), path)
 }
 
-func (e *Engine[_]) Start() {
+func (e *Engine[_]) Start(step chan bool) {
+	// TODO: add next instruction channel as an argument to make a rudimentary debugger
 	e.Chip.PC = 0x200
 	running := true
 	for running {
+		if step != nil {
+			_ = <-step	// read blocking from the step channel
+		}
 		ins, err := e.Chip.ReadInstruction()
 
 		switch ins.OpCode() {
