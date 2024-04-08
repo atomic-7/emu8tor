@@ -34,7 +34,7 @@ func (c *Chip8) SetIndex(idx int16) {
 	c.I = idx
 }
 
-// DXYN display/draw into the display buffer, acutal rendering is handled by the engine
+// DXYN display/draw into the display buffer, actual rendering is handled by the engine
 func (c *Chip8) Draw(xIDX int8, yIDX int8, nSize int8) {
 
 	// coords wrap, but the drawn sprite is cut off at the edge of the screen
@@ -43,24 +43,22 @@ func (c *Chip8) Draw(xIDX int8, yIDX int8, nSize int8) {
 	c.Registers[len(c.Registers)-1] = 0
 	fmt.Printf("Drawing sprite %d at x:%d, y:%d\n", c.I, xcoord, ycoord)
 	
-	// dbg
-	// c.Registers[5] = 1
-	// c.Display[1] = 0xf
-
-	spriteData := c.Memory[c.I+int16(nSize)] // nSize???
-
-	var idx, line int16 // index of the sprite, offset for the xcoordinate
-
-	for line = 0; ycoord+line < int16(nSize) && ycoord+line < c.Height; line++ {
-		for idx = 0; idx < 8 && xcoord+idx < c.Width; idx++ {
+	//line
+	var line, idx int16	// line of the font, position in the byte
+	for line = 0; line < int16(nSize) && ycoord + line < c.Height; line++ {
+		spriteData := c.Memory[c.I + line]
+		for idx = 0; idx < 8 && xcoord + idx < c.Width; idx++ {
 			if FontBitSet(spriteData, idx) {
-				if c.Display[(ycoord+line)*c.Width+xcoord+idx] == 0x1 { // display was already set at this coordinate
+				// sprites seem to be stored flipped by chip8 programs
+				pos := (ycoord + line) * c.Width + xcoord + 8 -idx
+				if c.Display[pos] == 0x1 { // display was already set at this coordinate
 					c.Registers[len(c.Registers)-1] = 1
-					c.Display[(ycoord+line)*c.Width+xcoord+idx] = 0x0
+					c.Display[pos] = 0x0
 				} else {
-					c.Display[(ycoord+line)*c.Width+xcoord+idx] = 0x1
+					c.Display[pos] = 0x1
 				}
 			}
 		}
 	}
+
 }

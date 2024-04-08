@@ -1,5 +1,7 @@
 package chip8
 
+// 4 pixels wide by 5 pixels tall
+// each bit corresponds to a horizontal pixel
 var Font [80]byte = [80]byte{
 0xF0, 0x90, 0x90, 0x90, 0xF0, // 0
 0x20, 0x60, 0x20, 0x20, 0x70, // 1
