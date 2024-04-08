@@ -26,19 +26,36 @@ func (rr *RayRender) Draw(dbuf []byte) {
 }
 func (rr *RayRender) DrawBuf(dbuf []byte) {
 	//color := rl.NewColor(dbuf[0], dbuf[1], dbuf[2], 255)
-	pxlLen := int32(rl.GetScreenWidth() / rr.Height)
+	pxlLen := int32(rl.GetScreenWidth() / rr.Width)
 
 	rl.BeginDrawing()
-	rl.ClearBackground(rl.RayWhite)
-	var x,y int32
+	rl.ClearBackground(rl.Black)
+	drawGrid(pxlLen)
+	var x, y int32
 	for y = 0; y < int32(rr.Height); y++ {
 		for x = 0; x < int32(rr.Width); x++ {
-			if dbuf[y * int32(rr.Width) + x] > 0 {
-				rl.DrawRectangle(x*pxlLen, y*pxlLen, pxlLen, pxlLen, rl.Black)
+			if dbuf[y*int32(rr.Width)+x] > 0 {
+				rl.DrawRectangle(x*pxlLen, y*pxlLen, pxlLen, pxlLen, rl.RayWhite)
 			}
 		}
 	}
 	rl.EndDrawing()
+}
+
+func drawGrid(pxlLen int32) {
+
+	var x, y, vlines, hlines int32
+	w := int32(rl.GetScreenWidth())
+	h := int32(rl.GetScreenHeight())
+	hlines = h / pxlLen
+	vlines = w / pxlLen
+
+	for x = 0; x < hlines; x++ {
+		rl.DrawLine(0, x*pxlLen, w, x*pxlLen, rl.Lime)
+	}
+	for y = 0; y < vlines; y++ {
+		rl.DrawLine(y*pxlLen, 0, y*pxlLen, h, rl.Lime)
+	}
 }
 
 func NewRaylibRender(w int, h int, bufChan chan []byte) *RayRender {
@@ -55,14 +72,14 @@ func NewRaylibRender(w int, h int, bufChan chan []byte) *RayRender {
 // presumably because of conflicts with the garbage collector not restoring the stack as expected
 func RenderLoop(dWidth int, dHeight int, wWidth int, wHeight int, render *RayRender) {
 	// abort context here
-	lastBuf :=make([]byte, dWidth*dHeight)
+	lastBuf := make([]byte, dWidth*dHeight)
 	rl.InitWindow(int32(wWidth), int32(wHeight), "Emu8tor - Raylib Render")
 	defer rl.CloseWindow()
 	rl.SetTargetFPS(60)
 	for !rl.WindowShouldClose() {
 		select {
-		case buf := <- render.rayChan:
-			copy(lastBuf, buf)	
+		case buf := <-render.rayChan:
+			copy(lastBuf, buf)
 			render.DrawBuf(lastBuf)
 		default:
 			render.DrawBuf(lastBuf)
@@ -71,6 +88,7 @@ func RenderLoop(dWidth int, dHeight int, wWidth int, wHeight int, render *RayRen
 	fmt.Println("raylib: should close")
 
 }
+
 /*
 	void EnableEventWaiting(void)
 	float GetFrameTime(void)
