@@ -6,9 +6,8 @@ import (
 	"time"
 )
 
-func main() {
-	rayrender := raygraphics.CreateRayApp(64, 32, 1024, 512)
-
+func patternGenerator(rayrender *raygraphics.RayRender) {
+	
 	pattern1 := make([]byte, 64 * 32)
 	pattern2 := make([]byte, 64 * 32)
 
@@ -30,6 +29,14 @@ func main() {
 		}
 		time.Sleep(50 * time.Millisecond)
 	}
-	fmt.Println("Done")
+}
 
+func main() {
+	//rayrender := raygraphics.CreateRayApp(64, 32, 1024, 512)
+	bufChan := make(chan []byte)
+	rayrender := raygraphics.NewRaylibRender(64, 32, bufChan)
+	go patternGenerator(rayrender)
+	raygraphics.RenderLoop(64, 32, 1024, 512, rayrender)
+
+	fmt.Println("Done")
 }
