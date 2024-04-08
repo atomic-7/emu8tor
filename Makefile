@@ -21,3 +21,6 @@ test:
 
 rayrender: output
 	go build -o bin/ ./cmd/rayrender
+
+raychecker: output
+	go build -o bin/ ./cmd/raychecker
