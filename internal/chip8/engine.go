@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"time"
 )
 
 // Drive execution, manage timers and load games
@@ -43,6 +44,7 @@ func (e *Engine[_]) Start() {
 		switch ins.OpCode() {
 		case 0x0:
 			if ins.N3() == 0xE {
+				fmt.Println("C8|Clearing screen.")
 				e.Chip.ClearScreen()
 			}
 		case 0x1:
@@ -54,6 +56,7 @@ func (e *Engine[_]) Start() {
 		case 0xA:
 			e.Chip.SetIndex(int16(ins.MemAddr()))
 		case 0xD:
+			//fmt.Printf("C8|Drawing: %d, %d, %d", ins.N2(), ins.N3(), ins.N4())
 			e.Chip.Draw(ins.N2(), ins.N3(), ins.N4())
 			e.Graphics.Draw(e.Chip.Display)
 		}
@@ -61,5 +64,7 @@ func (e *Engine[_]) Start() {
 		if err != nil {
 			log.Fatal(err.Error())
 		}
+		// the longer the wait here is, the longer it takes to crash. hm
+		time.Sleep(100 * time.Millisecond)
 	}
 }

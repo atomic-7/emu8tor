@@ -44,8 +44,8 @@ func (c *Chip8) Draw(xIDX int8, yIDX int8, nSize int8) {
 	fmt.Printf("Drawing sprite %d at x:%d, y:%d\n", c.I, xcoord, ycoord)
 	
 	// dbg
-	c.Registers[5] = 1
-	c.Display[1] = 0xf
+	// c.Registers[5] = 1
+	// c.Display[1] = 0xf
 
 	spriteData := c.Memory[c.I+int16(nSize)] // nSize???
 
