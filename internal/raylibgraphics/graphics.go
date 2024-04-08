@@ -1,6 +1,7 @@
 package raygraphics
 
 import (
+	"fmt"
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -24,11 +25,11 @@ func (rr *RayRender) Draw(dbuf []byte) {
 	rr.rayChan <- dbuf
 }
 func (rr *RayRender) DrawBuf(dbuf []byte) {
-	color := rl.NewColor(dbuf[0], dbuf[1], dbuf[2], 255)
+	//color := rl.NewColor(dbuf[0], dbuf[1], dbuf[2], 255)
 	pxlLen := int32(rl.GetScreenWidth() / rr.Height)
 
 	rl.BeginDrawing()
-	rl.ClearBackground(color)
+	rl.ClearBackground(rl.RayWhite)
 	var x,y int32
 	for y = 0; y < int32(rr.Height); y++ {
 		for x = 0; x < int32(rr.Width); x++ {
@@ -40,17 +41,37 @@ func (rr *RayRender) DrawBuf(dbuf []byte) {
 	rl.EndDrawing()
 }
 
-func NewRaylibRender(w int, h int) *RayRender {
+func NewRaylibRender(w int, h int, bufChan chan []byte) *RayRender {
 
 	var rr RayRender
 	rr.Width = w
 	rr.Height = h
+	rr.rayChan = bufChan
 
 	return &rr
 }
 
+// Executing the renderloop in a seperate goroutine has led to crashes
+// presumably because of conflicts with the garbage collector not restoring the stack as expected
+func RenderLoop(dWidth int, dHeight int, wWidth int, wHeight int, render *RayRender) {
+	// abort context here
+	lastBuf :=make([]byte, dWidth*dHeight)
+	rl.InitWindow(int32(wWidth), int32(wHeight), "Emu8tor - Raylib Render")
+	defer rl.CloseWindow()
+	rl.SetTargetFPS(60)
+	for !rl.WindowShouldClose() {
+		select {
+		case buf := <- render.rayChan:
+			copy(lastBuf, buf)	
+			render.DrawBuf(lastBuf)
+		default:
+			render.DrawBuf(lastBuf)
+		}
+	}
+	fmt.Println("raylib: should close")
+
+}
 /*
-	GetScreenWidth()
 	void EnableEventWaiting(void)
 	float GetFrameTime(void)
 	SetShapesTexture(Texture2d texture, Rectangle source)

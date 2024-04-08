@@ -19,8 +19,8 @@ func colorGenerator(bufChan chan []byte) {
 			}
 		}
 
-		localBuf[0] = byte(100 + 20 * (count % 3))
-		localBuf[1] = byte(100 + 10 * (count % 5))
+		localBuf[0] = byte(100 + 10 * (count % 3))
+		localBuf[1] = byte(100 + 20 * (count % 5))
 		localBuf[2] = byte(100 + 30 * (count % 7))
 		
 		bufChan <- localBuf
@@ -32,9 +32,9 @@ func colorGenerator(bufChan chan []byte) {
 func main() {
 	fmt.Println("RAYGRAPHICS")
 
-	render := raygraphics.NewRaylibRender(64, 32)
 	bufChan := make(chan []byte)
 	lastBuf := make([]byte, 64 * 32)
+	render := raygraphics.NewRaylibRender(64, 32, bufChan)
 
 	rl.InitWindow(1024, 512, "RayRender tests")
 	defer rl.CloseWindow()
