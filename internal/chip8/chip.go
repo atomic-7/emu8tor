@@ -9,6 +9,7 @@ type Chip8 struct {
 	Memory    []byte
 	Registers []int8
 	Display   []byte
+	Stack     *Stack
 	PC        int16
 	I         int16
 	Width     int16
@@ -24,7 +25,10 @@ func NewChip8() *Chip8 {
 	chip.Memory = make([]byte, 4096, 4096)
 	LoadFont(chip.Memory)
 	chip.Registers = make([]int8, 16, 16)
-	chip.Display = make([]byte, chip.Width * chip.Height, chip.Width * chip.Height)
+	chip.Display = make([]byte, chip.Width*chip.Height, chip.Width*chip.Height)
+	chip.Stack = &Stack{
+		sp:0,
+	}
 	chip.PC = 0
 	chip.I = 0x020
 	return &chip
