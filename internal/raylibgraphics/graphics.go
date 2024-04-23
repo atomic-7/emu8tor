@@ -28,7 +28,6 @@ func (rr *RayRender) DrawBuf(dbuf []byte) {
 	//color := rl.NewColor(dbuf[0], dbuf[1], dbuf[2], 255)
 	pxlLen := int32(rl.GetScreenWidth() / rr.Width)
 
-	rl.BeginDrawing()
 	rl.ClearBackground(rl.Black)
 	drawGrid(pxlLen)
 	var x, y int32
@@ -39,12 +38,12 @@ func (rr *RayRender) DrawBuf(dbuf []byte) {
 			}
 		}
 	}
-	rl.EndDrawing()
 }
 
 func drawGrid(pxlLen int32) {
 
 	var x, y, vlines, hlines int32
+
 	w := int32(rl.GetScreenWidth())
 	h := int32(rl.GetScreenHeight())
 	hlines = h / pxlLen
@@ -80,9 +79,13 @@ func RenderLoop(dWidth int, dHeight int, wWidth int, wHeight int, render *RayRen
 		select {
 		case buf := <-render.rayChan:
 			copy(lastBuf, buf)
+			rl.BeginDrawing()
 			render.DrawBuf(lastBuf)
+			rl.EndDrawing()
 		default:
+			rl.BeginDrawing()
 			render.DrawBuf(lastBuf)
+			rl.EndDrawing()
 		}
 		if rl.IsKeyPressed(rl.KeyS) {
 			if step != nil {
