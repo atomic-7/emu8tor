@@ -57,9 +57,9 @@ func (c *Chip8) AddValue(idx uint8, val uint8) {
 // 8XY4 add value of register Y to register X, save in X does set overflow reg VF
 func (c *Chip8) AddRegOverflow(idx uint8, idy uint8) {
 	fatNum := int16(c.Registers[idx]) + int16(c.Registers[idy])
-	if fatNum > 255 {
+	if fatNum > 256 {
 		c.Registers[len(c.Registers) - 1] = 1
-		c.Registers[idx] = uint8(fatNum - 255)
+		c.Registers[idx] = uint8(fatNum - 256)
 	} else {
 		c.Registers[len(c.Registers) - 1] = 0
 		c.Registers[idx] += c.Registers[idy]
