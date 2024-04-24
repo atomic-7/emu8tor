@@ -78,8 +78,13 @@ func subOverflow(vala int8, valb int8) (int8, int8) {
 }
 
 // 8XY5 VX = VX - VY, Overflow is 1 if VX > VY, reverse x, y for 8XY7
-func (c *Chip8) SubXYRegOverflow(idx int8, idy int8) {
-	res, overflow := subOverflow(c.Registers[idx], c.Registers[idy])
+func (c *Chip8) SubXYRegOverflow(idx int8, idy int8, yx bool) {
+	var res, overflow int8
+	if yx {
+		res, overflow = subOverflow(c.Registers[idy], c.Registers[idx])
+	} else {
+		res, overflow = subOverflow(c.Registers[idx], c.Registers[idy])
+	}
 	c.Registers[idx] = res
 	c.Registers[len(c.Registers) - 1] = overflow
 }

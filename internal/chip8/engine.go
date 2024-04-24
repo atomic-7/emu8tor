@@ -64,15 +64,15 @@ func (e *Engine[_]) Start(step chan bool) {
 		case 0x2:
 			e.Chip.Subroutine(ins.MemAddr())
 		case 0x3:
-			if e.Chip.Registers[ins.N2()] == int8(ins.Higher) { // skip if r[vx] == nn
+			if e.regVal(ins.N2()) == int8(ins.Higher) { // skip if r[vx] == nn
 				e.Chip.PC += 2
 			}
 		case 0x4:
-			if e.Chip.Registers[ins.N2()] != int8(ins.Higher) {
+			if e.regVal(ins.N2()) != int8(ins.Higher) {
 				e.Chip.PC += 2
 			}
 		case 0x5:
-			if e.Chip.Registers[ins.N2()] == e.Chip.Registers[ins.N3()] {
+			if e.regVal(ins.N2()) == e.regVal(ins.N3()) {
 				e.Chip.PC += 2
 			}
 		case 0x6:
@@ -82,7 +82,7 @@ func (e *Engine[_]) Start(step chan bool) {
 		case 0x8:
 			switch ins.N4() {
 			case 0x0: // set vx to vy
-				e.Chip.SetRegister(ins.N2(), e.Chip.Registers[ins.N3()])
+				e.Chip.SetRegister(ins.N2(), e.regVal(ins.N3()))
 			case 0x1: // set vx to vx | vy
 				e.Chip.SetRegister(ins.N2(), e.regVal(ins.N2())|e.regVal(ins.N3()))
 			case 0x2: // set vx to vy & vx
@@ -92,16 +92,16 @@ func (e *Engine[_]) Start(step chan bool) {
 			case 0x4: // set vx to vx + vy, set carry flag if it overflows 255
 				e.Chip.AddRegOverflow(ins.N2(), ins.N3())
 			case 0x5:
-				e.Chip.SubXYRegOverflow(ins.N2(), ins.N3())
+				e.Chip.SubXYRegOverflow(ins.N2(), ins.N3(), false)
 			case 0x6:	// test fail
 				e.Chip.Shift(ins.N2(), ins.N3(), true)
 			case 0x7:	// test fail
-				e.Chip.SubXYRegOverflow(ins.N3(), ins.N2())
+				e.Chip.SubXYRegOverflow(ins.N2(), ins.N3(), true)
 			case 0xE:
 				e.Chip.Shift(ins.N2(), ins.N3(), true)
 			}
 		case 0x9:
-			if e.Chip.Registers[ins.N2()] != e.Chip.Registers[ins.N3()] {
+			if e.regVal(ins.N2()) != e.regVal(ins.N3()) {
 				e.Chip.PC += 2
 			}
 		case 0xA:
