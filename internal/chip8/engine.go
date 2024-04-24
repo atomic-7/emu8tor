@@ -128,3 +128,22 @@ func (e *Engine[_]) Start(step chan bool) {
 func (e *Engine[_]) regVal(idx uint8) uint8 {
 	return e.Chip.Registers[idx]
 }
+
+const (
+	BTN0 = iota	//x
+	BTN1		//1
+	BTN2		//2
+	BTN3		//3
+	BTN4		//q
+	BTN5		//w
+	BTN6		//e
+	BTN7		//a
+	BTN8		//s
+	BTN9		//d
+	BTNA		//y
+	BTNB		//c
+	BTNC		//4
+	BTND		//r
+	BTNE		//f
+	BTNF		//v
+)
