@@ -16,7 +16,7 @@ type Engine[T Drawable] struct {
 
 func NewEngine[T Drawable](Renderer T) *Engine[T] {
 	var e Engine[T]
-	e.Chip = NewChip8()
+	e.Chip = NewChip8(CHIP48)
 	e.Graphics = Renderer
 	return &e
 }
@@ -51,35 +51,28 @@ func (e *Engine[_]) Start(step chan bool) {
 		switch ins.OpCode() {
 		case 0x0:
 			if ins.N3() == 0xE {
-				if ins.N4() == 0xE { // return from function
-					pc, err := e.Chip.Stack.pop()
-					if err != nil {
-						log.Fatal(err.Error())
-					}
-					e.Chip.PC = pc
-				} else {
-					fmt.Println("C8|Clearing screen.")
+				if ins.N4() == 0xE {
+					e.Chip.SubReturn()
+				} else if ins.N4() == 0x0 {
 					e.Chip.ClearScreen()
+				} else {
+					log.Fatal(fmt.Sprintf("Not implemented:%v", ins))
 				}
 			}
 		case 0x1:
 			e.Chip.Jump(ins.MemAddr())
 		case 0x2:
-			err := e.Chip.Stack.push(e.Chip.PC)
-			if err != nil {
-				log.Fatal(err.Error())
-			}
-			e.Chip.Jump(ins.MemAddr())
+			e.Chip.Subroutine(ins.MemAddr())
 		case 0x3:
-			if ins.N2() == int8(ins.Higher) {
+			if e.Chip.Registers[ins.N2()] == int8(ins.Higher) { // skip if r[vx] == nn
 				e.Chip.PC += 2
 			}
 		case 0x4:
-			if ins.N2() != int8(ins.Higher) {
+			if e.Chip.Registers[ins.N2()] != int8(ins.Higher) {
 				e.Chip.PC += 2
 			}
 		case 0x5:
-			if ins.N2() == ins.N3() {
+			if e.Chip.Registers[ins.N2()] == e.Chip.Registers[ins.N3()] {
 				e.Chip.PC += 2
 			}
 		case 0x6:
@@ -89,31 +82,49 @@ func (e *Engine[_]) Start(step chan bool) {
 		case 0x8:
 			switch ins.N4() {
 			case 0x0: // set vx to vy
-				e.Chip.SetRegister(ins.N2(), ins.N3())
+				e.Chip.SetRegister(ins.N2(), e.Chip.Registers[ins.N3()])
 			case 0x1: // set vx to vx | vy
-				e.Chip.SetRegister(ins.N2(), ins.N2()|ins.N3())
+				e.Chip.SetRegister(ins.N2(), e.regVal(ins.N2())|e.regVal(ins.N3()))
 			case 0x2: // set vx to vy & vx
-				e.Chip.SetRegister(ins.N2(), ins.N2()&ins.N3())
+				e.Chip.SetRegister(ins.N2(), e.regVal(ins.N2())&e.regVal(ins.N3()))
 			case 0x3: // set vx to vx xor vy
-				e.Chip.SetRegister(ins.N2(), ins.N2()^ins.N3())
+				e.Chip.SetRegister(ins.N2(), e.regVal(ins.N2())^e.regVal(ins.N3()))
 			case 0x4: // set vx to vx + vy, set carry flag if it overflows 255
+				e.Chip.AddRegOverflow(ins.N2(), ins.N3())
 			case 0x5:
-			case 0x6:
-			case 0x7:
+				e.Chip.SubXYRegOverflow(ins.N2(), ins.N3())
+			case 0x6:	// test fail
+				e.Chip.Shift(ins.N2(), ins.N3(), true)
+			case 0x7:	// test fail
+				e.Chip.SubXYRegOverflow(ins.N3(), ins.N2())
 			case 0xE:
+				e.Chip.Shift(ins.N2(), ins.N3(), true)
 			}
 		case 0x9:
-			if ins.N2() != ins.N3() {
+			if e.Chip.Registers[ins.N2()] != e.Chip.Registers[ins.N3()] {
 				e.Chip.PC += 2
 			}
 		case 0xA:
 			e.Chip.SetIndex(int16(ins.MemAddr()))
+		case 0xB:
+			e.Chip.JumpOffset(ins.N2(), int8(ins.Higher))
+		case 0xC:
+			e.Chip.Random(ins.N2(), int8(ins.Higher))
 		case 0xD:
 			//fmt.Printf("C8|Drawing: %d, %d, %d", ins.N2(), ins.N3(), ins.N4())
 			e.Chip.Draw(ins.N2(), ins.N3(), ins.N4())
 			e.Graphics.Draw(e.Chip.Display)
+		case 0xE:
+			// Skip
+		case 0xF:
+			// Timers
 		}
 
 		time.Sleep(100 * time.Millisecond)
 	}
+}
+
+// Get the value in the register idx, hopefully this gets inlined
+func (e *Engine[_]) regVal(idx int8) int8 {
+	return e.Chip.Registers[idx]
 }
