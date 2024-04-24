@@ -8,13 +8,13 @@ import (
 // Chip8 should represent the memory as seen by an original chip8 game
 type Chip8 struct {
 	Memory    []byte
-	Registers []int8
+	Registers []uint8
 	Display   []byte
 	Stack     *Stack
-	PC        int16
-	I         int16
-	Width     int16
-	Height    int16
+	PC        uint16
+	I         uint16
+	Width     uint16
+	Height    uint16
 	Architecture int
 }
 
@@ -32,7 +32,7 @@ func NewChip8(instructionset int) *Chip8 {
 	chip.Height = 32
 	chip.Memory = make([]byte, 4096, 4096)
 	LoadFont(chip.Memory)
-	chip.Registers = make([]int8, 16, 16)
+	chip.Registers = make([]uint8, 16, 16)
 	chip.Display = make([]byte, chip.Width*chip.Height, chip.Width*chip.Height)
 	chip.Stack = &Stack{
 		sp: 0,

@@ -17,23 +17,23 @@ func (ins *Instruction) OpCode() byte {
 	return ins.Lower >> 4
 }
 
-func (ins *Instruction) N2() int8 {
-	return int8(ins.Lower & 0x0f)
+func (ins *Instruction) N2() uint8 {
+	return uint8(ins.Lower & 0x0f)
 }
 
-func (ins *Instruction) N3() int8 {
-	return int8(ins.Higher >> 4)
+func (ins *Instruction) N3() uint8 {
+	return uint8(ins.Higher >> 4)
 }
 
-func (ins *Instruction) N4() int8 {
-	return int8(ins.Higher & 0x0f)
+func (ins *Instruction) N4() uint8 {
+	return uint8(ins.Higher & 0x0f)
 }
 
-func (ins *Instruction) MemAddr() int16 {
-	var addr int16
-	addr = int16(ins.N2())
+func (ins *Instruction) MemAddr() uint16 {
+	var addr uint16
+	addr = uint16(ins.N2())
 	addr = addr << 8
-	return addr | int16(ins.Higher)
+	return addr | uint16(ins.Higher)
 }
 
 func (ins *Instruction) String() string {

@@ -64,11 +64,11 @@ func (e *Engine[_]) Start(step chan bool) {
 		case 0x2:
 			e.Chip.Subroutine(ins.MemAddr())
 		case 0x3:
-			if e.regVal(ins.N2()) == int8(ins.Higher) { // skip if r[vx] == nn
+			if e.regVal(ins.N2()) == uint8(ins.Higher) { // skip if r[vx] == nn
 				e.Chip.PC += 2
 			}
 		case 0x4:
-			if e.regVal(ins.N2()) != int8(ins.Higher) {
+			if e.regVal(ins.N2()) != uint8(ins.Higher) {
 				e.Chip.PC += 2
 			}
 		case 0x5:
@@ -76,9 +76,9 @@ func (e *Engine[_]) Start(step chan bool) {
 				e.Chip.PC += 2
 			}
 		case 0x6:
-			e.Chip.SetRegister(ins.N2(), int8(ins.Higher))
+			e.Chip.SetRegister(ins.N2(), uint8(ins.Higher))
 		case 0x7:
-			e.Chip.AddValue(ins.N2(), int8(ins.Higher))
+			e.Chip.AddValue(ins.N2(), uint8(ins.Higher))
 		case 0x8:
 			switch ins.N4() {
 			case 0x0: // set vx to vy
@@ -90,10 +90,11 @@ func (e *Engine[_]) Start(step chan bool) {
 			case 0x3: // set vx to vx xor vy
 				e.Chip.SetRegister(ins.N2(), e.regVal(ins.N2())^e.regVal(ins.N3()))
 			case 0x4: // set vx to vx + vy, set carry flag if it overflows 255
+				// regeression
 				e.Chip.AddRegOverflow(ins.N2(), ins.N3())
 			case 0x5:
 				e.Chip.SubXYRegOverflow(ins.N2(), ins.N3(), false)
-			case 0x6:	// test fail
+			case 0x6: // test fail
 				e.Chip.Shift(ins.N2(), ins.N3(), true)
 			case 0x7:	
 				e.Chip.SubXYRegOverflow(ins.N2(), ins.N3(), true)
@@ -105,11 +106,11 @@ func (e *Engine[_]) Start(step chan bool) {
 				e.Chip.PC += 2
 			}
 		case 0xA:
-			e.Chip.SetIndex(int16(ins.MemAddr()))
+			e.Chip.SetIndex(ins.MemAddr())
 		case 0xB:
-			e.Chip.JumpOffset(ins.N2(), int8(ins.Higher))
+			e.Chip.JumpOffset(ins.N2(), uint8(ins.Higher))
 		case 0xC:
-			e.Chip.Random(ins.N2(), int8(ins.Higher))
+			e.Chip.Random(ins.N2(), uint8(ins.Higher))
 		case 0xD:
 			//fmt.Printf("C8|Drawing: %d, %d, %d", ins.N2(), ins.N3(), ins.N4())
 			e.Chip.Draw(ins.N2(), ins.N3(), ins.N4())
@@ -125,6 +126,6 @@ func (e *Engine[_]) Start(step chan bool) {
 }
 
 // Get the value in the register idx, hopefully this gets inlined
-func (e *Engine[_]) regVal(idx int8) int8 {
+func (e *Engine[_]) regVal(idx uint8) uint8 {
 	return e.Chip.Registers[idx]
 }

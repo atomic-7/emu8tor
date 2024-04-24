@@ -5,11 +5,11 @@ import (
 )
 
 type Stack struct {
-	data [32]int16
+	data [32]uint16
 	sp int	// points to the next free element
 }
 
-func (s *Stack) push(pc int16) error {
+func (s *Stack) push(pc uint16) error {
 	if s.sp > 31 {
 		return errors.New("C8: Stack overflow")
 	}
@@ -18,8 +18,8 @@ func (s *Stack) push(pc int16) error {
 	return nil
 }
 
-func (s *Stack)pop() (int16, error) {
-	var res int16
+func (s *Stack)pop() (uint16, error) {
+	var res uint16
 	if s.sp < 1 {
 		return res, errors.New("C8: Stack underflow")
 	}

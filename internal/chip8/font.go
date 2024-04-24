@@ -27,6 +27,6 @@ func LoadFont(mem []byte) {
 }
 
 // returns true when the bit at pos in the font character byte is set to 1
-func FontBitSet(fontChar byte, pos int16) bool {
+func FontBitSet(fontChar byte, pos uint16) bool {
 	return (int(fontChar) & (1 << pos)) > 0
 }
