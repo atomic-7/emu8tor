@@ -90,16 +90,15 @@ func (e *Engine[_]) Start(step chan bool) {
 			case 0x3: // set vx to vx xor vy
 				e.Chip.SetRegister(ins.N2(), e.regVal(ins.N2())^e.regVal(ins.N3()))
 			case 0x4: // set vx to vx + vy, set carry flag if it overflows 255
-				// regeression
 				e.Chip.AddRegOverflow(ins.N2(), ins.N3())
 			case 0x5:
 				e.Chip.SubXYRegOverflow(ins.N2(), ins.N3(), false)
-			case 0x6: // test fail
-				e.Chip.Shift(ins.N2(), ins.N3(), true)
+			case 0x6: // test fail, it seems 0x6 and 0xE are switched. The first one tests right shift
+				e.Chip.RShift(ins.N2(), ins.N3())
 			case 0x7:	
 				e.Chip.SubXYRegOverflow(ins.N2(), ins.N3(), true)
 			case 0xE:
-				e.Chip.Shift(ins.N2(), ins.N3(), true)
+				e.Chip.LShift(ins.N2(), ins.N3())
 			}
 		case 0x9:
 			if e.regVal(ins.N2()) != e.regVal(ins.N3()) {

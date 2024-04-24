@@ -90,26 +90,33 @@ func (c *Chip8) SubXYRegOverflow(idx uint8, idy uint8, yx bool) {
 }
 
 // 8XY6 Shift in X register with carry bit, respects architecture semantics
-func (c *Chip8) Shift(idx uint8, idy uint8, lshift bool) {
+func (c *Chip8) RShift(idx uint8, idy uint8) {
 	// CHIP8: put vy in vx, then shift vx 1 bit
 	// CHIP48/SCHIP: Ignore vy, just shift vx in place
 	if c.Architecture == CHIP8 {
 		c.Registers[idx] = c.Registers[idy]
 	}
 	var mask uint8 = 1
-	if lshift {
-		mask <<= 7
-	} 
 	if (c.Registers[idx] & mask) > 0 {
 		c.Registers[len(c.Registers) - 1] =  1
 	} else {
 		c.Registers[len(c.Registers) - 1] =  0
 	}
-	if lshift {
-		c.Registers[idx] <<= 1
-	} else {
-		c.Registers[idx] >>= 1
+	c.Registers[idx] >>= 1
+}
+
+// 8XYE Shift RX contents left by 1, copy RY to RX if CHIP8 arch
+func (c *Chip8) LShift(idx uint8, idy uint8) {
+	if c.Architecture == CHIP8 {
+		c.Registers[idx] = c.Registers[idy]
 	}
+	var mask uint8 = 1 << 7	// 128
+	if (c.Registers[idx] & mask) > 0 {
+		c.Registers[len(c.Registers) - 1] =  1
+	} else {
+		c.Registers[len(c.Registers) - 1] =  0
+	}
+	c.Registers[idx] = c.Registers[idx] << 1
 }
 
 // ANNN set index register I

@@ -12,7 +12,8 @@ func engineWorker(rayrender *raygraphics.RayRender, step chan bool) {
 	// engine := chip8.NewEngine[*chip8.DebugRender](chip8.NewDebugRender(64, 32))
 	engine := chip8.NewEngine[*raygraphics.RayRender](rayrender)
 	//engine.LoadGame(romBase + "1-chip8-logo.ch8")
-	engine.LoadGame(romBase + "2-ibm-logo.ch8")
+	//engine.LoadGame(romBase + "2-ibm-logo.ch8")
+	engine.LoadGame(romBase + "3-corax+.ch8")
 	engine.Start(step)
 }
 
