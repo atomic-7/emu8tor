@@ -11,7 +11,7 @@ type Stack struct {
 
 func (s *Stack) push(pc int16) error {
 	if s.sp > 31 {
-		return errors.New("Stack overflow")
+		return errors.New("C8: Stack overflow")
 	}
 	s.data[s.sp] = pc
 	s.sp++
@@ -21,9 +21,9 @@ func (s *Stack) push(pc int16) error {
 func (s *Stack)pop() (int16, error) {
 	var res int16
 	if s.sp < 1 {
-		return res, errors.New("Stack underflow")
+		return res, errors.New("C8: Stack underflow")
 	}
-	res = s.data[s.sp]
+	res = s.data[s.sp - 1]
 	s.sp--
 	return res, nil
 }
