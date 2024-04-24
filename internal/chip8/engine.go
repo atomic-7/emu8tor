@@ -115,9 +115,31 @@ func (e *Engine[_]) Start(step chan bool) {
 			e.Chip.Draw(ins.N2(), ins.N3(), ins.N4())
 			e.Graphics.Draw(e.Chip.Display)
 		case 0xE:
-			// Skip
+			// Skip, now waiting on input
+			if ins.N3() == 0x9 {
+				// skip if key in vx is pressed right now
+			} else if ins.N3() == 0xA {
+				// skip if key in vx is not pressed right now
+
+			} else {
+				log.Fatalf("Unkown instruction:\n%v\n%v", ins, e.Chip)
+			}
 		case 0xF:
 			// Timers
+			switch ins.Higher {
+			case 0x7:
+				//set vx to current value of delay timer
+			case 0xA:
+				// block execution until a key is pressed
+				// could be solved by checking for input and 
+				// decrementing the pc again if there was none, so this instruction gets hit again
+			case 0x15:
+				// set delay timer to value in vx
+			case 0x18:
+				// set sound timer to value in vx
+			case 0x1E:
+				// add value in vx to index register I, C8 for Amiga did overflow for 0FFF to 1000
+			}
 		}
 
 		time.Sleep(100 * time.Millisecond)
