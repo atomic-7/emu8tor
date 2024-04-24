@@ -95,7 +95,7 @@ func (e *Engine[_]) Start(step chan bool) {
 				e.Chip.SubXYRegOverflow(ins.N2(), ins.N3(), false)
 			case 0x6:	// test fail
 				e.Chip.Shift(ins.N2(), ins.N3(), true)
-			case 0x7:	// test fail
+			case 0x7:	
 				e.Chip.SubXYRegOverflow(ins.N2(), ins.N3(), true)
 			case 0xE:
 				e.Chip.Shift(ins.N2(), ins.N3(), true)

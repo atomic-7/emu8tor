@@ -95,18 +95,16 @@ func (c *Chip8) Shift(idx int8, idy int8, lshift bool) {
 	// CHIP48/SCHIP: Ignore vy, just shift vx in place
 	if c.Architecture == CHIP8 {
 		c.Registers[idx] = c.Registers[idy]
-		var mask int8 = 1
-		if lshift {
-			// think about mask size/signed/unsigned, could make a difference
-			mask <<= 7
-		} 
-		if (c.Registers[idx] & mask) > 0 {
-			c.Registers[len(c.Registers) - 1] =  1
-		} else {
-			c.Registers[len(c.Registers) - 1] =  0
-		}
 	}
-	//var shiftedBit int8
+	var mask int8 = 1
+	if lshift {
+		mask <<= 7
+	} 
+	if (c.Registers[idx] & mask) > 0 {
+		c.Registers[len(c.Registers) - 1] =  1
+	} else {
+		c.Registers[len(c.Registers) - 1] =  0
+	}
 	if lshift {
 		c.Registers[idx] <<= 1
 	} else {
