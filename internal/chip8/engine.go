@@ -36,9 +36,10 @@ func (e *Engine[_]) LoadGame(path string) {
 	fmt.Printf("Read %d bytes from %s\n", len(data), path)
 }
 
-func (e *Engine[_]) Start(step chan bool) {
+func (e *Engine[_]) Start(keystateChan chan [16]bool, step chan bool) {
 	// TODO: add next instruction channel as an argument to make a rudimentary debugger
 	e.Chip.PC = 0x200
+	var keyState [16]bool
 	chiptimer := NewChipTimer()
 	timerctx := context.Background()
 	defer timerctx.Done()
@@ -49,6 +50,10 @@ func (e *Engine[_]) Start(step chan bool) {
 	for running {
 		if step != nil {
 			_ = <-step // read blocking from the step channel
+		}
+		select {
+		case keyState = <- keystateChan:
+		default:
 		}
 		ins, err := e.Chip.ReadInstruction()
 
@@ -124,9 +129,15 @@ func (e *Engine[_]) Start(step chan bool) {
 		case 0xE:
 			// Skip, now waiting on input
 			if ins.N3() == 0x9 {
-				// skip if key in vx is pressed right now
+				// skip next if key in vx is pressed right now
+				if keyState[e.regVal(ins.N2())] {
+					e.Chip.PC += 2
+				}
 			} else if ins.N3() == 0xA {
-				// skip if key in vx is not pressed right now
+				// skip next if key in vx is not pressed right now
+				if !keyState[e.regVal(ins.N2())] {
+					e.Chip.PC += 2
+				}
 
 			} else {
 				log.Fatalf("Unkown instruction:\n%v\n%v", ins, e.Chip)
@@ -140,6 +151,16 @@ func (e *Engine[_]) Start(step chan bool) {
 				// block execution until a key is pressed
 				// could be solved by checking for input and 
 				// decrementing the pc again if there was none, so this instruction gets hit again
+				pressed := false
+				for _, key := range keyState {
+					if key {
+						pressed = true	
+						break;
+					}
+				}
+				if !pressed {
+					e.Chip.PC -= 2
+				}
 			case 0x15:
 				// set delay timer to value in vx
 				chiptimer.SetTimer(timerctx, ins.N2())	
@@ -148,6 +169,13 @@ func (e *Engine[_]) Start(step chan bool) {
 				beeper.SetBeep(beeperctx, ins.N2(), SilentBeeper)
 			case 0x1E:
 				// add value in vx to index register I, C8 for Amiga did overflow for 0FFF to 1000
+				e.Chip.I += uint16(e.regVal(ins.N2()))
+			case 0x29:
+				e.Chip.I = 0x50 + uint16(e.regVal(ins.N2()))	// may need to use the last nibble of the value in the register
+			case 0x33:
+				// TODO: Binary decimal conversion
+				// takes num in vx and places its digits in memory at I, I+1, I+2
+				// for 156, 1 goes to I, 5 goes to I +1 etc
 			case 0x55:
 				e.Chip.StoreRegisters(ins.N2())
 			case 0x65:
