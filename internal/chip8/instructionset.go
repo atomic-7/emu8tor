@@ -2,8 +2,8 @@ package chip8
 
 import (
 	"fmt"
-	"math/rand"
 	"log"
+	"math/rand"
 )
 
 // 00E0 clear screen
@@ -29,6 +29,7 @@ func (c *Chip8) ExecRoutine(addr int16) {
 func (c *Chip8) Jump(addr uint16) {
 	c.PC = addr
 }
+
 // 2NNN Subroutine
 func (c *Chip8) Subroutine(addr uint16) {
 	// running the corax test rom results in a stack overflow after the 2X check
@@ -44,6 +45,7 @@ func (c *Chip8) Subroutine(addr uint16) {
 	Registers: [32 0 0 0 0 42 42 0 18 22 27 1 0 0 0 0]
 	Stack: &{[90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90] 32} */
 }
+
 // 6XNN set register VX
 func (c *Chip8) SetRegister(idx uint8, val uint8) {
 	c.Registers[idx] = val
@@ -58,10 +60,10 @@ func (c *Chip8) AddValue(idx uint8, val uint8) {
 func (c *Chip8) AddRegOverflow(idx uint8, idy uint8) {
 	fatNum := int16(c.Registers[idx]) + int16(c.Registers[idy])
 	if fatNum > 256 {
-		c.Registers[len(c.Registers) - 1] = 1
+		c.Registers[len(c.Registers)-1] = 1
 		c.Registers[idx] = uint8(fatNum - 256)
 	} else {
-		c.Registers[len(c.Registers) - 1] = 0
+		c.Registers[len(c.Registers)-1] = 0
 		c.Registers[idx] += c.Registers[idy]
 	}
 }
@@ -86,7 +88,7 @@ func (c *Chip8) SubXYRegOverflow(idx uint8, idy uint8, yx bool) {
 		res, overflow = subOverflow(c.Registers[idx], c.Registers[idy])
 	}
 	c.Registers[idx] = res
-	c.Registers[len(c.Registers) - 1] = overflow
+	c.Registers[len(c.Registers)-1] = overflow
 }
 
 // 8XY6 Shift in X register with carry bit, respects architecture semantics
@@ -98,9 +100,9 @@ func (c *Chip8) RShift(idx uint8, idy uint8) {
 	}
 	var mask uint8 = 1
 	if (c.Registers[idx] & mask) > 0 {
-		c.Registers[len(c.Registers) - 1] =  1
+		c.Registers[len(c.Registers)-1] = 1
 	} else {
-		c.Registers[len(c.Registers) - 1] =  0
+		c.Registers[len(c.Registers)-1] = 0
 	}
 	c.Registers[idx] >>= 1
 }
@@ -110,11 +112,11 @@ func (c *Chip8) LShift(idx uint8, idy uint8) {
 	if c.Architecture == CHIP8 {
 		c.Registers[idx] = c.Registers[idy]
 	}
-	var mask uint8 = 1 << 7	// 128
+	var mask uint8 = 1 << 7 // 128
 	if (c.Registers[idx] & mask) > 0 {
-		c.Registers[len(c.Registers) - 1] =  1
+		c.Registers[len(c.Registers)-1] = 1
 	} else {
-		c.Registers[len(c.Registers) - 1] =  0
+		c.Registers[len(c.Registers)-1] = 0
 	}
 	c.Registers[idx] = c.Registers[idx] << 1
 }
@@ -149,15 +151,15 @@ func (c *Chip8) Draw(xIDX uint8, yIDX uint8, nSize uint8) {
 	ycoord := uint16(c.Registers[yIDX]) % c.Height
 	c.Registers[len(c.Registers)-1] = 0
 	fmt.Printf("Drawing sprite %d at x:%d, y:%d\n", c.I, xcoord, ycoord)
-	
+
 	//line
-	var line, idx uint16	// line of the font, position in the byte
-	for line = 0; line < uint16(nSize) && ycoord + line < c.Height; line++ {
-		spriteData := c.Memory[c.I + line]
-		for idx = 0; idx < 8 && xcoord + idx < c.Width; idx++ {
+	var line, idx uint16 // line of the font, position in the byte
+	for line = 0; line < uint16(nSize) && ycoord+line < c.Height; line++ {
+		spriteData := c.Memory[c.I+line]
+		for idx = 0; idx < 8 && xcoord+idx < c.Width; idx++ {
 			if FontBitSet(spriteData, idx) {
 				// sprites seem to be stored flipped by chip8 programs
-				pos := (ycoord + line) * c.Width + xcoord + 8 -idx
+				pos := (ycoord+line)*c.Width + xcoord + 8 - idx
 				if c.Display[pos] == 0x1 { // display was already set at this coordinate
 					c.Registers[len(c.Registers)-1] = 1
 					c.Display[pos] = 0x0
@@ -167,6 +169,18 @@ func (c *Chip8) Draw(xIDX uint8, yIDX uint8, nSize uint8) {
 			}
 		}
 	}
+}
+
+// FX55 stores all registers up to number X in memory starting at I. Arch:CHIP8 Increments I
+func (c *Chip8) StoreRegisters(idx uint8) {
+	var r uint8
+	for r = 0; r <= idx; r++ {
+		c.Memory[c.I+uint16(r)] = c.Registers[r]
+	}
+	if c.Architecture == CHIP8 {
+		c.I += uint16(idx) + 1
+	}
+}
 
 // FX65 loads all registers up to X from memory starting at I. Arch:CHIP8 Increments I
 func (c *Chip8) LoadRegisters(idx uint8) {
