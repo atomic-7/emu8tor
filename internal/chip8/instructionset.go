@@ -168,4 +168,13 @@ func (c *Chip8) Draw(xIDX uint8, yIDX uint8, nSize uint8) {
 		}
 	}
 
+// FX65 loads all registers up to X from memory starting at I. Arch:CHIP8 Increments I
+func (c *Chip8) LoadRegisters(idx uint8) {
+	var r uint8
+	for r = 0; r <= idx; r++ {
+		c.Registers[r] = c.Memory[c.I+uint16(r)]
+	}
+	if c.Architecture == CHIP8 {
+		c.I += uint16(idx) + 1
+	}
 }

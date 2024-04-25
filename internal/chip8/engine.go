@@ -148,6 +148,8 @@ func (e *Engine[_]) Start(step chan bool) {
 				beeper.SetBeep(beeperctx, ins.N2(), SilentBeeper)
 			case 0x1E:
 				// add value in vx to index register I, C8 for Amiga did overflow for 0FFF to 1000
+			case 0x65:
+				e.Chip.LoadRegisters(ins.N2())
 			}
 		}
 
