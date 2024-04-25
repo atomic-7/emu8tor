@@ -1,6 +1,7 @@
 package chip8
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -38,6 +39,12 @@ func (e *Engine[_]) LoadGame(path string) {
 func (e *Engine[_]) Start(step chan bool) {
 	// TODO: add next instruction channel as an argument to make a rudimentary debugger
 	e.Chip.PC = 0x200
+	chiptimer := NewChipTimer()
+	timerctx := context.Background()
+	defer timerctx.Done()
+	beeper := NewChipTimer()
+	beeperctx := context.Background()
+	defer beeperctx.Done()
 	running := true
 	for running {
 		if step != nil {
@@ -125,18 +132,20 @@ func (e *Engine[_]) Start(step chan bool) {
 				log.Fatalf("Unkown instruction:\n%v\n%v", ins, e.Chip)
 			}
 		case 0xF:
-			// Timers
 			switch ins.Higher {
 			case 0x7:
 				//set vx to current value of delay timer
+				e.Chip.Registers[ins.N2()] = chiptimer.Count
 			case 0xA:
 				// block execution until a key is pressed
 				// could be solved by checking for input and 
 				// decrementing the pc again if there was none, so this instruction gets hit again
 			case 0x15:
 				// set delay timer to value in vx
+				chiptimer.SetTimer(timerctx, ins.N2())	
 			case 0x18:
 				// set sound timer to value in vx
+				beeper.SetBeep(beeperctx, ins.N2(), SilentBeeper)
 			case 0x1E:
 				// add value in vx to index register I, C8 for Amiga did overflow for 0FFF to 1000
 			}
