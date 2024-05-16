@@ -37,7 +37,7 @@ func (e *Engine[_]) LoadGame(path string) {
 }
 
 func (e *Engine[_]) Start(keystateChan chan [16]bool, step chan bool) {
-	// TODO: add next instruction channel as an argument to make a rudimentary debugger
+
 	e.Chip.PC = 0x200
 	var keyState [16]bool
 	chiptimer := NewChipTimer()
@@ -47,13 +47,14 @@ func (e *Engine[_]) Start(keystateChan chan [16]bool, step chan bool) {
 	beeperctx := context.Background()
 	defer beeperctx.Done()
 	running := true
+
 	for running {
 		if step != nil {
 			_ = <-step // read blocking from the step channel
 		}
 		select {
-		case keyState = <- keystateChan:
-		default:
+		case keyState = <-keystateChan:
+		default:	// no keys pressesd
 		}
 		ins, err := e.Chip.ReadInstruction()
 
@@ -96,18 +97,18 @@ func (e *Engine[_]) Start(keystateChan chan [16]bool, step chan bool) {
 			case 0x0: // set vx to vy
 				e.Chip.SetRegister(ins.N2(), e.regVal(ins.N3()))
 			case 0x1: // set vx to vx | vy
-				e.Chip.SetRegister(ins.N2(), e.regVal(ins.N2())|e.regVal(ins.N3()))
+				e.Chip.LogicalOr(ins.N2(), ins.N3())
 			case 0x2: // set vx to vy & vx
-				e.Chip.SetRegister(ins.N2(), e.regVal(ins.N2())&e.regVal(ins.N3()))
+				e.Chip.LogicalAnd(ins.N2(), ins.N3())
 			case 0x3: // set vx to vx xor vy
-				e.Chip.SetRegister(ins.N2(), e.regVal(ins.N2())^e.regVal(ins.N3()))
+				e.Chip.LogicalXor(ins.N2(), ins.N3())
 			case 0x4: // set vx to vx + vy, set carry flag if it overflows 255
 				e.Chip.AddRegOverflow(ins.N2(), ins.N3())
 			case 0x5:
 				e.Chip.SubXYRegOverflow(ins.N2(), ins.N3(), false)
 			case 0x6: // test fail, it seems 0x6 and 0xE are switched. The first one tests right shift
 				e.Chip.RShift(ins.N2(), ins.N3())
-			case 0x7:	
+			case 0x7:
 				e.Chip.SubXYRegOverflow(ins.N2(), ins.N3(), true)
 			case 0xE:
 				e.Chip.LShift(ins.N2(), ins.N3())
@@ -149,13 +150,13 @@ func (e *Engine[_]) Start(keystateChan chan [16]bool, step chan bool) {
 				e.Chip.Registers[ins.N2()] = chiptimer.Count
 			case 0xA:
 				// block execution until a key is pressed
-				// could be solved by checking for input and 
+				// could be solved by checking for input and
 				// decrementing the pc again if there was none, so this instruction gets hit again
 				pressed := false
 				for _, key := range keyState {
 					if key {
-						pressed = true	
-						break;
+						pressed = true
+						break
 					}
 				}
 				if !pressed {
@@ -163,7 +164,7 @@ func (e *Engine[_]) Start(keystateChan chan [16]bool, step chan bool) {
 				}
 			case 0x15:
 				// set delay timer to value in vx
-				chiptimer.SetTimer(timerctx, ins.N2())	
+				chiptimer.SetTimer(timerctx, ins.N2())
 			case 0x18:
 				// set sound timer to value in vx
 				beeper.SetBeep(beeperctx, ins.N2(), SilentBeeper)
@@ -171,7 +172,7 @@ func (e *Engine[_]) Start(keystateChan chan [16]bool, step chan bool) {
 				// add value in vx to index register I, C8 for Amiga did overflow for 0FFF to 1000
 				e.Chip.I += uint16(e.regVal(ins.N2()))
 			case 0x29:
-				e.Chip.I = 0x50 + uint16(e.regVal(ins.N2()))	// may need to use the last nibble of the value in the register
+				e.Chip.I = 0x50 + uint16(e.regVal(ins.N2())) // may need to use the last nibble of the value in the register
 			case 0x33:
 				// TODO: Binary decimal conversion
 				// takes num in vx and places its digits in memory at I, I+1, I+2
@@ -181,6 +182,8 @@ func (e *Engine[_]) Start(keystateChan chan [16]bool, step chan bool) {
 			case 0x65:
 				e.Chip.LoadRegisters(ins.N2())
 			}
+		default:
+			log.Fatal(fmt.Sprintf("Not implemented:%v", ins))
 		}
 
 		time.Sleep(100 * time.Millisecond)
@@ -193,20 +196,20 @@ func (e *Engine[_]) regVal(idx uint8) uint8 {
 }
 
 const (
-	BTN0 = iota	//x
-	BTN1		//1
-	BTN2		//2
-	BTN3		//3
-	BTN4		//q
-	BTN5		//w
-	BTN6		//e
-	BTN7		//a
-	BTN8		//s
-	BTN9		//d
-	BTNA		//y
-	BTNB		//c
-	BTNC		//4
-	BTND		//r
-	BTNE		//f
-	BTNF		//v
+	BTN0 = iota //x
+	BTN1        //1
+	BTN2        //2
+	BTN3        //3
+	BTN4        //q
+	BTN5        //w
+	BTN6        //e
+	BTN7        //a
+	BTN8        //s
+	BTN9        //d
+	BTNA        //y
+	BTNB        //c
+	BTNC        //4
+	BTND        //r
+	BTNE        //f
+	BTNF        //v
 )

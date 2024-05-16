@@ -56,6 +56,23 @@ func (c *Chip8) AddValue(idx uint8, val uint8) {
 	c.Registers[idx] = c.Registers[idx] + val
 }
 
+// 8XY0 Set vx to vy implemented in engine via SetRegister
+
+//8XY1 Set vx to vx | vy
+func (c *Chip8) LogicalOr(idx uint8, idy uint8) {
+	c.Registers[idx] = c.Registers[idx] | c.Registers[idy]
+}
+
+//8XY2 Set vx to vx & vy
+func (c *Chip8) LogicalAnd(idx uint8, idy uint8) {
+	c.Registers[idx] = c.Registers[idx] & c.Registers[idy]
+}
+
+//8XY3 Set vx to vx ^ vy
+func (c *Chip8) LogicalXor(idx uint8, idy uint8) {
+	c.Registers[idx] = c.Registers[idx] ^ c.Registers[idy]
+}
+
 // 8XY4 add value of register Y to register X, save in X does set overflow reg VF
 func (c *Chip8) AddRegOverflow(idx uint8, idy uint8) {
 	fatNum := int16(c.Registers[idx]) + int16(c.Registers[idy])
@@ -178,7 +195,7 @@ func (c *Chip8) StoreRegisters(idx uint8) {
 		c.Memory[c.I+uint16(r)] = c.Registers[r]
 	}
 	if c.Architecture == CHIP8 {
-		c.I += uint16(idx) + 1
+		c.I += uint16(idx) //+ 1
 	}
 }
 
@@ -189,6 +206,6 @@ func (c *Chip8) LoadRegisters(idx uint8) {
 		c.Registers[r] = c.Memory[c.I+uint16(r)]
 	}
 	if c.Architecture == CHIP8 {
-		c.I += uint16(idx) + 1
+		c.I += uint16(idx) //+ 1
 	}
 }
