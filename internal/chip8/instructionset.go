@@ -11,6 +11,7 @@ func (c *Chip8) ClearScreen() {
 	c.Display = make([]byte, 64*32)
 }
 
+// 0x0EE return from subroutine
 func (c *Chip8) SubReturn() {
 	pc, err := c.Stack.pop()
 	if err != nil {
@@ -22,7 +23,7 @@ func (c *Chip8) SubReturn() {
 
 // 0NNN exec machine routine at NNN
 func (c *Chip8) ExecRoutine(addr int16) {
-	println("Executing subroutine")
+	log.Printf("0X%d: %v", addr, c)
 }
 
 // 1NNN jump
@@ -32,18 +33,12 @@ func (c *Chip8) Jump(addr uint16) {
 
 // 2NNN Subroutine
 func (c *Chip8) Subroutine(addr uint16) {
-	// running the corax test rom results in a stack overflow after the 2X check
-	// stack seems to work as intended, so it seems there is an issue with popping values
 	err := c.Stack.push(c.PC)
 	if err != nil {
 		log.Printf("0x2NNN: %v", c)
 		log.Fatal(err.Error())
 	}
 	c.PC = addr
-	/* 0x2NNN: PC: 90
-	Instruction: 1125
-	Registers: [32 0 0 0 0 42 42 0 18 22 27 1 0 0 0 0]
-	Stack: &{[90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90 90] 32} */
 }
 
 // 6XNN set register VX
@@ -56,19 +51,19 @@ func (c *Chip8) AddValue(idx uint8, val uint8) {
 	c.Registers[idx] = c.Registers[idx] + val
 }
 
-// 8XY0 Set vx to vy implemented in engine via SetRegister
+// 8XY0 set VX to VY implemented in engine via SetRegister
 
-//8XY1 Set vx to vx | vy
+//8XY1 set VX to VX | VY
 func (c *Chip8) LogicalOr(idx uint8, idy uint8) {
 	c.Registers[idx] = c.Registers[idx] | c.Registers[idy]
 }
 
-//8XY2 Set vx to vx & vy
+//8XY2 Set VX to VX & VY
 func (c *Chip8) LogicalAnd(idx uint8, idy uint8) {
 	c.Registers[idx] = c.Registers[idx] & c.Registers[idy]
 }
 
-//8XY3 Set vx to vx ^ vy
+//8XY3 Set VX to VX ^ VY
 func (c *Chip8) LogicalXor(idx uint8, idy uint8) {
 	c.Registers[idx] = c.Registers[idx] ^ c.Registers[idy]
 }
@@ -96,7 +91,7 @@ func subOverflow(vala uint8, valb uint8) (uint8, uint8) {
 	return vala - valb, overflow
 }
 
-// 8XY5 VX = VX - VY, Overflow is 1 if VX > VY, reverse x, y for 8XY7
+// 8XY5 VX = VX - VY, Overflow is 1 if VX > VY, reverse X, Y for 8XY7
 func (c *Chip8) SubXYRegOverflow(idx uint8, idy uint8, yx bool) {
 	var res, overflow uint8
 	if yx {
@@ -188,8 +183,19 @@ func (c *Chip8) Draw(xIDX uint8, yIDX uint8, nSize uint8) {
 	}
 }
 
+// FX33 binary decimal conversion:split up num in vx into digits and place them at i, i+1 and i+2
+func (c *Chip8) BinaryDecimalConversion(idx uint8) {
+	d0 := c.Registers[idx] % 10
+	d10 := c.Registers[idx] % 100 - d0
+	c.Memory[c.I] = (c.Registers[idx] - d10 - d0) / 100
+	c.Memory[c.I + 1] = d10 / 10
+	c.Memory[c.I + 2] = d0
+}
+
 // FX55 stores all registers up to number X in memory starting at I. Arch:CHIP8 Increments I
 func (c *Chip8) StoreRegisters(idx uint8) {
+	// This seems to work as intended, however I seems to be off after the checks and it does print neither the correct mark nor the incorrect mark
+	// The original corax test works here
 	var r uint8
 	for r = 0; r <= idx; r++ {
 		c.Memory[c.I+uint16(r)] = c.Registers[r]

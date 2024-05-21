@@ -54,7 +54,7 @@ func (e *Engine[_]) Start(keystateChan chan [16]bool, step chan bool) {
 		}
 		select {
 		case keyState = <-keystateChan:
-		default:	// no keys pressesd
+		default: // no keys pressesd
 		}
 		ins, err := e.Chip.ReadInstruction()
 
@@ -124,7 +124,6 @@ func (e *Engine[_]) Start(keystateChan chan [16]bool, step chan bool) {
 		case 0xC:
 			e.Chip.Random(ins.N2(), uint8(ins.Higher))
 		case 0xD:
-			//fmt.Printf("C8|Drawing: %d, %d, %d", ins.N2(), ins.N3(), ins.N4())
 			e.Chip.Draw(ins.N2(), ins.N3(), ins.N4())
 			e.Graphics.Draw(e.Chip.Display)
 		case 0xE:
@@ -143,6 +142,7 @@ func (e *Engine[_]) Start(keystateChan chan [16]bool, step chan bool) {
 			} else {
 				log.Fatalf("Unkown instruction:\n%v\n%v", ins, e.Chip)
 			}
+
 		case 0xF:
 			switch ins.Higher {
 			case 0x7:
@@ -177,6 +177,7 @@ func (e *Engine[_]) Start(keystateChan chan [16]bool, step chan bool) {
 				// TODO: Binary decimal conversion
 				// takes num in vx and places its digits in memory at I, I+1, I+2
 				// for 156, 1 goes to I, 5 goes to I +1 etc
+				e.Chip.BinaryDecimalConversion(ins.N2())
 			case 0x55:
 				e.Chip.StoreRegisters(ins.N2())
 			case 0x65:

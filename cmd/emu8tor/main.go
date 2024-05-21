@@ -14,6 +14,7 @@ func engineWorker(rayrender *raygraphics.RayRender, keystateChan chan [16]bool, 
 	//engine.LoadGame(romBase + "1-chip8-logo.ch8")
 	//engine.LoadGame(romBase + "2-ibm-logo.ch8")
 	engine.LoadGame(romBase + "3-corax+.ch8")
+	//engine.LoadGame("../../chip8-test-rom/test_opcode.ch8")
 	engine.Start(keystateChan, step)
 }
 
