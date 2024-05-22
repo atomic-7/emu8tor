@@ -10,19 +10,22 @@ import (
 
 // Drive execution, manage timers and load games
 // as well as manage rendering
-type Engine[T Drawable] struct {
+type Engine struct {
 	Chip     *Chip8
-	Graphics T
+	Graphics Drawable
+	Keypad Keypad
+	TickRate int	// Instructions Per Second
 }
 
-func NewEngine[T Drawable](Renderer T) *Engine[T] {
-	var e Engine[T]
+func NewEngine(renderer Drawable, keypad Keypad) *Engine {
+	var e Engine
 	e.Chip = NewChip8(CHIP48)
-	e.Graphics = Renderer
+	e.Graphics = renderer
+	e.Keypad = keypad
 	return &e
 }
 
-func (e *Engine[_]) LoadGame(path string) {
+func (e *Engine) LoadGame(path string) {
 
 	data, err := os.ReadFile(path)
 	if err != nil {
@@ -36,9 +39,10 @@ func (e *Engine[_]) LoadGame(path string) {
 	fmt.Printf("Read %d bytes from %s\n", len(data), path)
 }
 
-func (e *Engine[_]) Start(keystateChan chan [16]bool, step chan bool) {
+func (e *Engine) Start(keystateChan chan [16]bool, step chan bool) {
 
 	e.Chip.PC = 0x200
+//	tickduration := int(time.Second) / e.TickRate
 	var keyState [16]bool
 	chiptimer := NewChipTimer()
 	timerctx := context.Background()
@@ -53,6 +57,7 @@ func (e *Engine[_]) Start(keystateChan chan [16]bool, step chan bool) {
 			_ = <-step // read blocking from the step channel
 		}
 		select {
+		// consider making keystateChan buffered
 		case keyState = <-keystateChan:
 		default: // no keys pressesd
 		}
@@ -126,7 +131,10 @@ func (e *Engine[_]) Start(keystateChan chan [16]bool, step chan bool) {
 		case 0xD:
 			e.Chip.Draw(ins.N2(), ins.N3(), ins.N4())
 			e.Graphics.Draw(e.Chip.Display)
+			// always read the input blocking?
+			keyState = <- keystateChan
 		case 0xE:
+			log.Printf("Key: %d, State: %v", e.regVal(ins.N2()), keyState[e.regVal(ins.N2())])
 			// Skip, now waiting on input
 			if ins.N3() == 0x9 {
 				// skip next if key in vx is pressed right now
@@ -152,6 +160,8 @@ func (e *Engine[_]) Start(keystateChan chan [16]bool, step chan bool) {
 				// block execution until a key is pressed
 				// could be solved by checking for input and
 				// decrementing the pc again if there was none, so this instruction gets hit again
+				// need to get input here?
+				keyState = <- keystateChan	
 				pressed := false
 				for _, key := range keyState {
 					if key {
@@ -174,9 +184,6 @@ func (e *Engine[_]) Start(keystateChan chan [16]bool, step chan bool) {
 			case 0x29:
 				e.Chip.I = 0x50 + uint16(e.regVal(ins.N2())) // may need to use the last nibble of the value in the register
 			case 0x33:
-				// TODO: Binary decimal conversion
-				// takes num in vx and places its digits in memory at I, I+1, I+2
-				// for 156, 1 goes to I, 5 goes to I +1 etc
 				e.Chip.BinaryDecimalConversion(ins.N2())
 			case 0x55:
 				e.Chip.StoreRegisters(ins.N2())
@@ -187,12 +194,13 @@ func (e *Engine[_]) Start(keystateChan chan [16]bool, step chan bool) {
 			log.Fatal(fmt.Sprintf("Not implemented:%v", ins))
 		}
 
-		time.Sleep(100 * time.Millisecond)
+		time.Sleep( 1400 * time.Microsecond)
+		
 	}
 }
 
 // Get the value in the register idx, hopefully this gets inlined
-func (e *Engine[_]) regVal(idx uint8) uint8 {
+func (e *Engine) regVal(idx uint8) uint8 {
 	return e.Chip.Registers[idx]
 }
 
