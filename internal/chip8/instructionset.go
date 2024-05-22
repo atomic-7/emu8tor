@@ -1,7 +1,7 @@
 package chip8
 
 import (
-	"fmt"
+	//"fmt"
 	"log"
 	"math/rand"
 )
@@ -162,7 +162,7 @@ func (c *Chip8) Draw(xIDX uint8, yIDX uint8, nSize uint8) {
 	xcoord := uint16(c.Registers[xIDX]) % c.Width
 	ycoord := uint16(c.Registers[yIDX]) % c.Height
 	c.Registers[len(c.Registers)-1] = 0
-	fmt.Printf("Drawing sprite %d at x:%d, y:%d\n", c.I, xcoord, ycoord)
+	//fmt.Printf("Drawing sprite %d at x:%d, y:%d\n", c.I, xcoord, ycoord)
 
 	//line
 	var line, idx uint16 // line of the font, position in the byte

@@ -2,13 +2,10 @@ package raygraphics
 
 import (
 	"fmt"
-	//"log"
-
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
-// Implements Drawable
-
+// Implements Drawable and Keypad
 type RayRender struct {
 	Width   int
 	Height  int
@@ -77,11 +74,11 @@ func NewRaylibRender(w int, h int, bufChan chan []byte) *RayRender {
 
 // Executing the renderloop in a seperate goroutine has led to crashes
 // presumably because of conflicts with the garbage collector not restoring the stack as expected
-func RenderLoop(dWidth int, dHeight int, wWidth int, wHeight int, render *RayRender, keystateChan chan [16]bool, step chan bool) {
+func RenderLoop(dWidth int, dHeight int, wWidth int, wHeight int, render *RayRender,  step chan bool) {
 	// abort context here
 	lastBuf := make([]byte, dWidth*dHeight)
 	// Could support different layouts here
-	keys := []int32{rl.KeyX, rl.KeyOne, rl.KeyTwo, rl.KeyThree, rl.KeyQ, rl.KeyW, rl.KeyE, rl.KeyA, rl.KeyS, rl.KeyD, rl.KeyY, rl.KeyC, rl.KeyFour, rl.KeyR, rl.KeyF, rl.KeyV}
+	keys := [16]int32{rl.KeyX, rl.KeyOne, rl.KeyTwo, rl.KeyThree, rl.KeyQ, rl.KeyW, rl.KeyE, rl.KeyA, rl.KeyS, rl.KeyD, rl.KeyY, rl.KeyC, rl.KeyFour, rl.KeyR, rl.KeyF, rl.KeyV}
 	rl.InitWindow(int32(wWidth), int32(wHeight), "Emu8tor - Raylib Render")
 	defer rl.CloseWindow()
 	rl.SetTargetFPS(60)
@@ -99,25 +96,11 @@ func RenderLoop(dWidth int, dHeight int, wWidth int, wHeight int, render *RayRen
 				step <- true
 			}
 		}
-		if keystateChan != nil {
-			// check pressed keys here
-			for idx, key:= range keys {
-				//if rl.IsKeyPressed(key) {
-				if rl.IsKeyDown(key) || rl.IsKeyPressed(key) {
-					render.keyStates[idx] = true
-				}
+		render.keyStates = [16]bool{}
+		for idx, key:= range keys {
+			if rl.IsKeyDown(key) || rl.IsKeyPressed(key) {
+				render.keyStates[idx] = true
 			}
-
-			//for _, state := range keystate {
-			//	if state {
-			//		log.Printf("%v", keystate)
-			//		break
-			//	}
-			//}
-			//select {	// nonblocking send
-			//case keystateChan <- keystate:
-			//default:	// just proceed if unable to send
-			//}
 		}
 	}
 	fmt.Println("raylib: should close")

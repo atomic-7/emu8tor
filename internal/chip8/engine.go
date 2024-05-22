@@ -13,8 +13,8 @@ import (
 type Engine struct {
 	Chip     *Chip8
 	Graphics Drawable
-	Keypad Keypad
-	TickRate int	// Instructions Per Second
+	Keypad   Keypad
+	TickRate int // Instructions Per Second
 }
 
 func NewEngine(renderer Drawable, keypad Keypad) *Engine {
@@ -42,7 +42,7 @@ func (e *Engine) LoadGame(path string) {
 func (e *Engine) Start(keystateChan chan [16]bool, step chan bool) {
 
 	e.Chip.PC = 0x200
-//	tickduration := int(time.Second) / e.TickRate
+	//	tickduration := int(time.Second) / e.TickRate
 	var keyState [16]bool
 	chiptimer := NewChipTimer()
 	timerctx := context.Background()
@@ -55,11 +55,6 @@ func (e *Engine) Start(keystateChan chan [16]bool, step chan bool) {
 	for running {
 		if step != nil {
 			_ = <-step // read blocking from the step channel
-		}
-		select {
-		// consider making keystateChan buffered
-		case keyState = <-keystateChan:
-		default: // no keys pressesd
 		}
 		ins, err := e.Chip.ReadInstruction()
 
@@ -93,6 +88,7 @@ func (e *Engine) Start(keystateChan chan [16]bool, step chan bool) {
 			if e.regVal(ins.N2()) == e.regVal(ins.N3()) {
 				e.Chip.PC += 2
 			}
+
 		case 0x6:
 			e.Chip.SetRegister(ins.N2(), uint8(ins.Higher))
 		case 0x7:
@@ -131,10 +127,9 @@ func (e *Engine) Start(keystateChan chan [16]bool, step chan bool) {
 		case 0xD:
 			e.Chip.Draw(ins.N2(), ins.N3(), ins.N4())
 			e.Graphics.Draw(e.Chip.Display)
-			// always read the input blocking?
-			keyState = <- keystateChan
+
 		case 0xE:
-			log.Printf("Key: %d, State: %v", e.regVal(ins.N2()), keyState[e.regVal(ins.N2())])
+			keyState = e.Keypad.GetKeyStates()
 			// Skip, now waiting on input
 			if ins.N3() == 0x9 {
 				// skip next if key in vx is pressed right now
@@ -160,8 +155,7 @@ func (e *Engine) Start(keystateChan chan [16]bool, step chan bool) {
 				// block execution until a key is pressed
 				// could be solved by checking for input and
 				// decrementing the pc again if there was none, so this instruction gets hit again
-				// need to get input here?
-				keyState = <- keystateChan	
+				keyState = e.Keypad.GetKeyStates()
 				pressed := false
 				for _, key := range keyState {
 					if key {
@@ -172,6 +166,7 @@ func (e *Engine) Start(keystateChan chan [16]bool, step chan bool) {
 				if !pressed {
 					e.Chip.PC -= 2
 				}
+
 			case 0x15:
 				// set delay timer to value in vx
 				chiptimer.SetTimer(timerctx, ins.N2())
@@ -194,8 +189,9 @@ func (e *Engine) Start(keystateChan chan [16]bool, step chan bool) {
 			log.Fatal(fmt.Sprintf("Not implemented:%v", ins))
 		}
 
-		time.Sleep( 1400 * time.Microsecond)
-		
+		time.Sleep(1400 * time.Microsecond)
+		//time.Sleep(1 * time.Millisecond)
+
 	}
 }
 

@@ -36,7 +36,7 @@ func main() {
 	bufChan := make(chan []byte)
 	rayrender := raygraphics.NewRaylibRender(64, 32, bufChan)
 	go patternGenerator(rayrender)
-	raygraphics.RenderLoop(64, 32, 1024, 512, rayrender, nil,nil)
+	raygraphics.RenderLoop(64, 32, 1024, 512, rayrender, nil)
 
 	fmt.Println("Done")
 }
