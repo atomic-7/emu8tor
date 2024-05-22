@@ -2,6 +2,8 @@ package raygraphics
 
 import (
 	"fmt"
+	//"log"
+
 	rl "github.com/gen2brain/raylib-go/raylib"
 )
 
@@ -11,6 +13,7 @@ type RayRender struct {
 	Width   int
 	Height  int
 	rayChan chan []byte
+	keyStates [16]bool
 }
 
 func (rr *RayRender) SetWidth(w int) {
@@ -38,6 +41,11 @@ func (rr *RayRender) DrawBuf(dbuf []byte) {
 			}
 		}
 	}
+}
+
+// Keypad interface
+func (rr *RayRender) GetKeyStates() [16]bool {
+	return rr.keyStates
 }
 
 func drawGrid(pxlLen int32) {
@@ -81,14 +89,11 @@ func RenderLoop(dWidth int, dHeight int, wWidth int, wHeight int, render *RayRen
 		select {
 		case buf := <-render.rayChan:
 			copy(lastBuf, buf)
-			rl.BeginDrawing()
-			render.DrawBuf(lastBuf)
-			rl.EndDrawing()
 		default:
-			rl.BeginDrawing()
-			render.DrawBuf(lastBuf)
-			rl.EndDrawing()
 		}
+		rl.BeginDrawing()
+		render.DrawBuf(lastBuf)
+		rl.EndDrawing()
 		if step != nil {
 			if rl.IsKeyPressed(rl.KeyN) {
 				step <- true
@@ -96,16 +101,23 @@ func RenderLoop(dWidth int, dHeight int, wWidth int, wHeight int, render *RayRen
 		}
 		if keystateChan != nil {
 			// check pressed keys here
-			var keystate [16]bool
 			for idx, key:= range keys {
-				if rl.IsKeyPressed(key) {
-					keystate[idx] = true
+				//if rl.IsKeyPressed(key) {
+				if rl.IsKeyDown(key) || rl.IsKeyPressed(key) {
+					render.keyStates[idx] = true
 				}
 			}
-			select {	// nonblocking send
-			case keystateChan <- keystate:
-			default:	// just proceed if unable to send
-			}
+
+			//for _, state := range keystate {
+			//	if state {
+			//		log.Printf("%v", keystate)
+			//		break
+			//	}
+			//}
+			//select {	// nonblocking send
+			//case keystateChan <- keystate:
+			//default:	// just proceed if unable to send
+			//}
 		}
 	}
 	fmt.Println("raylib: should close")
