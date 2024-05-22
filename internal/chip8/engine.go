@@ -14,7 +14,7 @@ type Engine struct {
 	Chip     *Chip8
 	Graphics Drawable
 	Keypad   Keypad
-	TickRate int // Instructions Per Second
+	TickRate int64 // Microseconds between instructions
 }
 
 func NewEngine(renderer Drawable, keypad Keypad) *Engine {
@@ -22,6 +22,7 @@ func NewEngine(renderer Drawable, keypad Keypad) *Engine {
 	e.Chip = NewChip8(CHIP48)
 	e.Graphics = renderer
 	e.Keypad = keypad
+	e.TickRate = 1400
 	return &e
 }
 
@@ -153,8 +154,6 @@ func (e *Engine) Start(keystateChan chan [16]bool, step chan bool) {
 				e.Chip.Registers[ins.N2()] = chiptimer.Count
 			case 0xA:
 				// block execution until a key is pressed
-				// could be solved by checking for input and
-				// decrementing the pc again if there was none, so this instruction gets hit again
 				keyState = e.Keypad.GetKeyStates()
 				pressed := false
 				for _, key := range keyState {
@@ -189,7 +188,7 @@ func (e *Engine) Start(keystateChan chan [16]bool, step chan bool) {
 			log.Fatal(fmt.Sprintf("Not implemented:%v", ins))
 		}
 
-		time.Sleep(1400 * time.Microsecond)
+		time.Sleep(time.Duration(e.TickRate) * time.Microsecond)
 		//time.Sleep(1 * time.Millisecond)
 
 	}
