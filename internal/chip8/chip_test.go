@@ -5,7 +5,7 @@ import(
 )
 
 func TestReadInstruction(t *testing.T) {
-	ch := NewChip8()
+	ch := NewChip8(CHIP8)
 
 	// OP:f|0|9|0|&>144
 	ch.PC = 0x050
